@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String        @id @default(cuid())
+  name                   String
+  civicProvidedPublicKey String @unique
+  blogs                  Blog[]        @relation(name: "BlogToUser")
+  tips                   Tip[]
+  likes                  Like[]
+  transactions           Transaction[]
+  purchasedBlogs         Blog[]        @relation(name: "PurchasedBlogs")
+}
+
+model Blog {
+  id             String  @id @unique @default(cuid())
+  title          String
+  imageUrl String?
+  excerpt        String
+  content        String
+  tags           String
+  isPremium      Boolean @default(false)
+  blogOwnerId    String
+  blogOwner      User    @relation("BlogToUser", fields: [blogOwnerId], references: [id])
+  likes          Like[]
+  tips           Tip[]
+  purchasedUsers User[]  @relation(name: "PurchasedBlogs")
+}
+
+model Transaction {
+  id                String   @id @unique @default(cuid())
+  fromAddress       String
+  toAddress         String?
+  amount            Int
+  createdAt         DateTime @default(now())
+  initiatedByUserId String
+  txSignature       String?
+  user              User     @relation(fields: [initiatedByUserId], references: [id])
+}
+
+model Like {
+  id        String   @id @unique @default(cuid())
+  blogId    String
+  userId    String
+  createdAt DateTime @default(now())
+  blog      Blog     @relation(fields: [blogId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Tip {
+  id                String   @id @unique @default(cuid())
+  fromAddress       String
+  blogId            String
+  amount            Int
+  createdAt         DateTime @default(now())
+  initiatedByUserId String
+  user              User     @relation(fields: [initiatedByUserId], references: [id])
+  blog              Blog     @relation(fields: [blogId], references: [id])
+}
