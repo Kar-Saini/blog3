@@ -2,11 +2,19 @@
 
 import prisma from "@/lib/utils";
 
-export async function getUserDetails(userId: string) {
+export default async function getUserDetails(userId: string) {
   try {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      include: { blogs: true, likes: true, tips: true, transactions: true },
+      include: {
+        blogs: {
+          include: { tips: true, purchasedUsers: true, likes: true },
+          orderBy: { createdAt: "desc" },
+        },
+        likes: true,
+        tips: true,
+        transactions: true,
+      },
     });
 
     if (!user) {

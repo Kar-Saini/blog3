@@ -16,6 +16,7 @@ model User {
   likes                  Like[]
   transactions           Transaction[]
   purchasedBlogs         Blog[]        @relation(name: "PurchasedBlogs")
+  createdAt             DateTime? @default(now())
 }
 
 model Blog {
@@ -26,11 +27,13 @@ model Blog {
   content        String
   tags           String
   isPremium      Boolean @default(false)
+  price         Int? 
   blogOwnerId    String
   blogOwner      User    @relation("BlogToUser", fields: [blogOwnerId], references: [id])
   likes          Like[]
   tips           Tip[]
   purchasedUsers User[]  @relation(name: "PurchasedBlogs")
+  createdAt         DateTime @default(now())
 }
 
 model Transaction {

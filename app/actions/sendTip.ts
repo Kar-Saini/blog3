@@ -17,7 +17,7 @@ const serverKeypair = Keypair.fromSecretKey(bs58.decode(SECRET_KEY));
 
 const connection = new Connection("https://api.devnet.solana.com");
 
-export async function sendTip(
+export default async function sendTip(
   blogId: string,
   amount: number, // in SOL
   initiatedByUserId: string

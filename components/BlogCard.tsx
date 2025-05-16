@@ -1,19 +1,18 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Lock } from "lucide-react";
+import clsx from "clsx";
+import { Lock, Heart } from "lucide-react";
 import Link from "next/link";
 
 interface BlogCardProps {
   id: string;
   title: string;
   excerpt: string;
-  author: {
-    name: string;
-    id: string;
-  };
-  date: string;
+  author: string;
+  date: Date;
   isPremium: boolean;
   imageUrl?: string;
+  likes: number;
 }
 
 const BlogCard = ({
@@ -24,6 +23,7 @@ const BlogCard = ({
   date,
   isPremium,
   imageUrl,
+  likes,
 }: BlogCardProps) => {
   return (
     <Link href={`/blog/${id}`}>
@@ -53,14 +53,19 @@ const BlogCard = ({
             {excerpt}
           </p>
         </CardContent>
-        <CardFooter className="pt-0 pb-4 px-5 flex justify-between text-xs text-blog-muted font-mono">
-          <span>By {author.name}</span>
-          <time dateTime={date}>
-            {new Date(date).toLocaleString("en-US", {
-              month: "short",
-              day: "numeric",
-            })}
-          </time>
+        <CardFooter className="pt-0 pb-4 px-5 flex justify-between items-center text-xs text-blog-muted font-mono">
+          <span>By {author}</span>
+          <span>{new Date(date).toISOString().slice(0, 10)}</span>
+          <div className="flex items-center gap-1">
+            <Heart
+              className={clsx(
+                "w-4 h-4 text-gray-300",
+                likes !== 0 && "text-red-500"
+              )}
+              fill="currentColor"
+            />
+            <span>{likes}</span>
+          </div>
         </CardFooter>
       </Card>
     </Link>

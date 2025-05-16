@@ -7,31 +7,45 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
+import useAuthGuard from "@/hooks/useAuthGuard";
+import clsx from "clsx";
+import addNewBlog from "../actions/addNewBlog";
+import toast from "react-hot-toast";
 
 const NewPost = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [excerpt, setExcerpt] = useState("");
   const [tags, setTags] = useState("");
-  const [isPremium, setIsPremium] = useState(false);
+  const [imageUrl, setImageUrl] = useState("");
+  const [isPremium, setIsPremium] = useState(true);
+  const [price, setPrice] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
   const router = useRouter();
+  const userId = useAuthGuard();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
-    setTimeout(() => {
+    try {
+      const res = await addNewBlog(
+        title,
+        excerpt,
+        content,
+        tags,
+        isPremium,
+        userId!,
+        imageUrl,
+        price
+      );
+      toast.success("Blog Added!!, BlogId: " + res);
+      router.push("/explore");
+    } catch (error) {
+      console.log(error);
+      toast.error("Error adding blog" + error);
+    } finally {
       setIsSubmitting(false);
-      toast({
-        title: "🎉 Blog post published!",
-        description: isPremium
-          ? "🚀 Your premium content is now available to subscribers."
-          : "📢 Your post is now live for everyone to read.",
-      });
-      router.push("/");
-    }, 1500);
+    }
   };
 
   return (
@@ -104,26 +118,59 @@ const NewPost = () => {
                 className="font-mono borde  r-emerald-300 focus:ring-emerald-500"
               />
             </div>
+            <div className="space-y-2">
+              <Label
+                htmlFor="imageUrl"
+                className="text-indigo-600 font-semibold"
+              >
+                Image URL
+              </Label>
+              <Input
+                id="imageUrl"
+                placeholder="www.example.com"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                className="font-mono borde  r-emerald-300 focus:ring-emerald-500"
+              />
+            </div>
 
             <div className="flex items-center gap-3">
               <Switch
                 id="premium"
                 checked={isPremium}
-                className="border border-gray-400"
-                onCheckedChange={setIsPremium}
+                onCheckedChange={() => setIsPremium(!isPremium)}
+                className={clsx(
+                  "border border-gray-400",
+                  "bg-gray-300 data-[state=checked]:bg-pink-600" // track colour
+                )}
               />
-              <Label htmlFor="premium" className="text-pink-600 font-medium">
+
+              <label
+                htmlFor="premium"
+                className="text-pink-600 font-medium cursor-pointer"
+              >
                 Make this post premium content
-              </Label>
+              </label>
             </div>
 
             {isPremium && (
-              <div className="bg-gradient-to-br from-yellow-100 to-pink-100 border-l-4 border-pink-400 p-4 rounded-md text-sm shadow">
+              <div className="bg-gradient-to-br from-yellow-100 to-pink-100 border-l-4 border-pink-400 p-4 rounded-md text-sm shadow flex flex-col gap-2">
                 <p className="text-pink-700 font-medium">
-                  💎 Premium posts require readers to pay 0.01 ETH to access.{" "}
-                  <br />
-                  You’ll receive 95% of all payments.
+                  💎 Premium posts require readers to pay ETH to access. You’ll
+                  receive 95% of all payments.
                 </p>
+
+                <label className="text-sm font-semibold text-pink-700">
+                  Set price (ETH):
+                </label>
+                <input
+                  type="number"
+                  step="0.001"
+                  min="0"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  className="p-1 rounded border border-pink-400 text-pink-700"
+                />
               </div>
             )}
 

@@ -1,13 +1,15 @@
 "use server";
 import prisma from "@/lib/utils";
 
-export async function addNewBlog(
+export default async function addNewBlog(
   title: string,
   excerpt: string,
   content: string,
   categores: string,
   isPremium: boolean,
-  userId: string
+  userId: string,
+  imageUrl?: string,
+  price?: number
 ) {
   try {
     const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -20,11 +22,13 @@ export async function addNewBlog(
         title,
         isPremium,
         blogOwnerId: user.id,
+        imageUrl,
+        price,
       },
     });
     return blog.id;
   } catch (error) {
-    console.error("Error liking blog:", error);
+    console.error("Error creating blog:", error);
     throw error;
   }
 }

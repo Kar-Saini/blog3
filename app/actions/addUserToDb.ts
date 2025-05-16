@@ -2,7 +2,7 @@
 
 import prisma from "@/lib/utils";
 
-export async function addUserToDb(
+export default async function addUserToDb(
   name: string,
   civicProvidedPublicKey: string
 ) {
@@ -10,7 +10,7 @@ export async function addUserToDb(
     const userExists = await prisma.user.findUnique({
       where: { civicProvidedPublicKey },
     });
-    if (userExists) return "User exists";
+    if (userExists) return userExists.id;
     const user = await prisma.user.create({
       data: {
         civicProvidedPublicKey,

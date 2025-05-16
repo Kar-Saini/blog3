@@ -4,6 +4,7 @@ import "./globals.css";
 
 import Appbar from "../components/Appbar";
 import { CivicProviderWrapper } from "@/Providers";
+import Providers from "./Providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,10 +31,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased font-mono max-w-7xl mx-auto`}
       >
-        <CivicProviderWrapper>
-          <Appbar />
-          {children}
-        </CivicProviderWrapper>
+        <Providers>
+          <CivicProviderWrapper>
+            <Appbar />
+            {children}
+          </CivicProviderWrapper>
+        </Providers>
       </body>
     </html>
   );

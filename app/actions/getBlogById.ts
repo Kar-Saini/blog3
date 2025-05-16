@@ -1,6 +1,8 @@
+"use server";
+
 import primsa from "@/lib/utils";
 
-export async function getAllBlogById(blogId: string) {
+export default async function getBlogById(blogId: string) {
   try {
     const blog = await primsa.blog.findUnique({
       where: { id: blogId },

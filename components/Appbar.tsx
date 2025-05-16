@@ -12,12 +12,12 @@ import {
   PublicKey,
   clusterApiUrl,
 } from "@solana/web3.js";
-import { addUserToDb } from "@/app/actions/addUserToDb";
+import addUserToDb from "@/app/actions/addUserToDb";
+import { useRouter } from "next/navigation";
 
 const checkBalance = async (publicKey: string) => {
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
   const balance = await connection.getBalance(new PublicKey(publicKey));
-  console.log(`Balance: ${balance / LAMPORTS_PER_SOL} SOL`);
   return balance / LAMPORTS_PER_SOL;
 };
 
@@ -25,6 +25,7 @@ const Appbar = () => {
   const userContext = useUser();
   const [walletAddress, setWalletAddress] = useState<null | string>(null);
   const [balance, setBalance] = useState<null | number>(null);
+  const router = useRouter();
   const setupWallet = async () => {
     if (userContext.user && !userHasWallet(userContext)) {
       await userContext.createWallet();
@@ -35,8 +36,8 @@ const Appbar = () => {
 
       const bal = await checkBalance(currentAddress);
       if (bal) setBalance(bal);
-
-      await addUserToDb(userContext.user?.name!, currentAddress);
+      const userId = await addUserToDb(userContext.user?.name!, currentAddress);
+      localStorage.setItem("userId", userId);
     }
   };
   useEffect(() => {
@@ -49,14 +50,16 @@ const Appbar = () => {
     if (isLoggedIn) await userContext.signOut();
     else await userContext.signIn();
   }
-
   return (
     <nav className="bg-white border-b border-gray-200 shadow-md px-6 py-4 rounded-md mx-auto max-w-screen-xl flex items-center justify-between font-mono">
       <Link
         href="/"
         className="text-3xl font-extrabold tracking-tight text-blog-dark font-mono"
       >
-        <span className="flex items-center gap-2">
+        <span
+          className="flex items-center gap-2 hover:cursor-pointer"
+          onClick={() => router.push("/")}
+        >
           <Wind className="text-pink-600" />
           <span>blog3</span>
         </span>
@@ -64,7 +67,10 @@ const Appbar = () => {
       <div className="flex items-center gap-4">
         {isLoggedIn && (
           <div className="flex flex-col text-right text-sm text-gray-600 font-mono">
-            <div className="text-base font-bold text-gray-800">
+            <div
+              className="text-base font-bold text-gray-800 hover:cursor-pointer"
+              onClick={() => router.push("/profile")}
+            >
               {userContext.user?.name}
             </div>
             {walletAddress ? (

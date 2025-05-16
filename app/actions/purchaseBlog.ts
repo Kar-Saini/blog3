@@ -2,9 +2,9 @@
 
 import prisma from "@/lib/utils";
 
-export default async function likeBlog(blogId: string, userId: string) {
+export default async function purchaseBlog(blogId: string, userId: string) {
   try {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.blog.findUnique({
       where: { id: userId },
     });
 
@@ -21,19 +21,16 @@ export default async function likeBlog(blogId: string, userId: string) {
       throw new Error("Invalid BlogID");
     }
 
-    if (blog.isPremium) {
-      const hasUserPurchased = blog.purchasedUsers.some((u) => u.id === userId);
-
-      if (!hasUserPurchased) {
-        throw new Error("User needs to purchase this blog to like it.");
-      }
+    if (!blog.isPremium) {
+      throw new Error("Blog is not premium");
     }
 
-    await prisma.like.create({
-      data: { blogId, userId },
+    await prisma.blog.update({
+      where: { id: blogId },
+      data: { purchasedUsers: { connect: { id: userId } } },
     });
 
-    return "Blog liked successfully.";
+    return "Purchased succesfully.";
   } catch (error) {
     console.error("Error liking blog:", error);
     throw error;

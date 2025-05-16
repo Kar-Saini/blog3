@@ -1,56 +1,67 @@
 "use client";
-import { useState } from "react";
-import Navbar from "@/components/Appbar";
+import { useEffect, useState } from "react";
 import TipAuthor from "@/components/TipAuthor";
-import { sampleBlogs } from "@/data/data";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Lock, Calendar, Tag } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useUser } from "@civic/auth-web3/react";
+import getBlogById from "@/app/actions/getBlogById";
+import toast from "react-hot-toast";
+
+import getUserDetailsByCivicAddress from "@/app/actions/getUserDetailsByCivicAddress";
+import likeBlog from "@/app/actions/likeBlog";
 
 const BlogPage = () => {
   const { blogId } = useParams();
-  console.log(blogId);
-  const { toast } = useToast();
-  const [isPurchased, setIsPurchased] = useState(false);
+  const userContext = useUser();
+  const router = useRouter();
+  const [blog, setBlog] = useState<any>();
+  const [currentUser, setCurrentUser] = useState<any>();
 
-  // Find the blog post with the matching ID
-  const blog = sampleBlogs.find((blog) => blog.id === blogId);
+  useEffect(() => {
+    if (!blogId) router.push("/explore");
+    async function getBlogAndCurrentUserDeatails() {
+      try {
+        const blog = await getBlogById(blogId as string);
+        setBlog(blog);
+        console.log(userContext);
+        const currentUserDetails = await getUserDetailsByCivicAddress(
+          userContext?.solana?.address.toString()
+        );
+        console.log(currentUserDetails);
+        console.log(blog);
+        setCurrentUser(currentUserDetails);
+      } catch (error) {
+        toast.error("Error finding blog/user " + error);
+        router.push("/explore");
+      }
+    }
+    getBlogAndCurrentUserDeatails();
+  }, []);
 
+  async function handleLike() {
+    try {
+      const res = await likeBlog(blog.id, currentUser.id);
+      toast.success(res);
+    } catch (error) {
+      toast.error("Error : " + error);
+      console.log(error);
+    }
+  }
+  const handlePurchase = () => {};
+
+  function handleTip() {}
   if (!blog) {
     return (
       <div className="min-h-screen  font-mono">
         <div className="container py-16 text-center">
-          <h1 className="text-2xl font-bold mb-4">Blog Post Not Found</h1>
-          <p className="mb-6">
-            The blog post you're looking for doesn't exist.
-          </p>
-          <Button asChild>
-            <a href="/">Return to Home</a>
-          </Button>
+          <h1 className="text-2xl font-bold mb-4">Loading...</h1>
         </div>
       </div>
     );
   }
 
-  const handlePurchase = () => {
-    // In a real app, this would process a payment
-    toast({
-      title: "Processing payment",
-      description: "Connecting to your wallet...",
-    });
-
-    setTimeout(() => {
-      setIsPurchased(true);
-      toast({
-        title: "Access granted!",
-        description: "You now have access to this premium content.",
-      });
-    }, 1500);
-  };
-
-  // Convert markdown-style content to HTML (simplified)
   const renderContent = (content: string) => {
     let html = content;
 
@@ -78,7 +89,6 @@ const BlogPage = () => {
       '<li class="ml-6 list-decimal">$1</li>'
     );
 
-    // Handle tables
     if (html.includes("| ")) {
       const tableRows = html.match(/\|.+\|/g) || [];
       if (tableRows.length > 0) {
@@ -114,7 +124,6 @@ const BlogPage = () => {
     <div className="min-h-screen font-mono w-full ">
       <main className="container py-10 px-4">
         <article className="max-w-6xl mx-auto">
-          {/* Blog Header */}
           <header className="mb-10">
             {blog.imageUrl && (
               <div className="mb-6 rounded-2xl overflow-hidden shadow-lg h-[300px] md:h-[400px]">
@@ -128,18 +137,18 @@ const BlogPage = () => {
 
             <div className="flex flex-wrap items-center gap-3 mb-5">
               <time
-                dateTime={blog.date}
+                dateTime={blog.createdAt}
                 className="text-sm text-purple-700 font-semibold flex items-center"
               >
                 <Calendar className="h-4 w-4 mr-1" />
-                {new Date(blog.date).toLocaleDateString("en-US", {
+                {new Date(blog.createdAt).toLocaleDateString("en-US", {
                   year: "numeric",
                   month: "long",
                   day: "numeric",
                 })}
               </time>
 
-              {blog.tags.map((tag) => (
+              {blog.tags.split(",").map((tag) => (
                 <Badge
                   key={tag}
                   variant="outline"
@@ -165,16 +174,20 @@ const BlogPage = () => {
             <div className="flex items-center">
               <div>
                 <p className="font-bold text-lg text-blue-800">
-                  By {blog.author.name}
+                  By {blog.blogOwner.name}
                 </p>
-                <p className="text-sm text-gray-600">{blog.author.bio}</p>
               </div>
             </div>
           </header>
 
-          {/* Blog Content */}
           <div className="prose prose-lg max-w-none text-gray-800">
-            {blog.isPremium && !isPurchased ? (
+            {blog.isPremium &&
+            currentUser &&
+            (currentUser.id !== blog.blogOwnerId ||
+              (currentUser.purchasedBlogs &&
+                !currentUser.purchasedBlogs
+                  .map((b) => b.id)
+                  .includes(blog.id))) ? (
               <div className="bg-white p-10 rounded-xl border border-purple-200 text-center shadow-lg">
                 <Lock className="h-12 w-12 mx-auto mb-4 text-orange-500" />
                 <h3 className="text-2xl font-bold mb-2 text-purple-700">
@@ -187,7 +200,7 @@ const BlogPage = () => {
                   onClick={handlePurchase}
                   className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold shadow hover:opacity-90"
                 >
-                  Pay 0.01 ETH to Unlock
+                  Pay 0.01 SOL to Unlock
                 </Button>
               </div>
             ) : (
@@ -198,27 +211,16 @@ const BlogPage = () => {
             )}
           </div>
 
-          {/* Author Tip Section */}
-          <div className="mt-12">
-            <TipAuthor
-              authorId={blog.author.id}
-              authorName={blog.author.name}
-            />
-          </div>
+          {currentUser && currentUser.id !== blog.blogOwnerId && (
+            <div className="mt-12">
+              <TipAuthor
+                authorId={blog.blogOwner.id}
+                authorName={blog.blogOwner.name}
+              />
+            </div>
+          )}
         </article>
       </main>
-
-      <footer className="bg-gray-900 text-white py-10 px-4 mt-20">
-        <div className="container">
-          <div className="text-center">
-            <p className="text-sm font-light tracking-wide">
-              &copy; {new Date().getFullYear()}{" "}
-              <span className="font-semibold">CryptoScribe</span>. All rights
-              reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
