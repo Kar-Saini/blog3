@@ -4,27 +4,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/components/ui/use-toast";
-import { Heart, ThumbsUp } from "lucide-react";
+import { Heart, HeartIcon, ThumbsUp } from "lucide-react";
 
 interface TipAuthorProps {
   authorId: string;
   authorName: string;
+  handleLike: () => void;
+  liked: boolean;
 }
 
-const TipAuthor = ({ authorId, authorName }: TipAuthorProps) => {
+const TipAuthor = ({
+  authorId,
+  authorName,
+  handleLike,
+  liked,
+}: TipAuthorProps) => {
   const [tipAmount, setTipAmount] = useState(0.01);
   const [isProcessing, setIsProcessing] = useState(false);
-  const { toast } = useToast();
 
   const handleTip = () => {
     setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
-      toast({
-        title: `You tipped ${tipAmount} ETH to ${authorName}!`,
-        description: "Thank you for supporting quality content.",
-      });
-    }, 1500);
   };
 
   return (
@@ -36,7 +35,7 @@ const TipAuthor = ({ authorId, authorName }: TipAuthorProps) => {
 
       <div className="mb-5">
         <p className="text-sm text-gray-700 mb-2 font-semibold uppercase">
-          Tip Amount (ETH)
+          Tip Amount (SOL)
         </p>
         <div className="flex items-center gap-4 justify-between">
           <div className="flex items-center gap-4">
@@ -49,20 +48,28 @@ const TipAuthor = ({ authorId, authorName }: TipAuthorProps) => {
             />
             <Button
               onClick={handleTip}
-              className="bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600 text-white font-bold px-6 py-2 rounded-lg transition-all duration-300"
+              className="bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600 hover:cursor-pointer text-white font-bold px-6 py-2 rounded-lg transition-all duration-300"
               disabled={isProcessing}
             >
               {isProcessing ? "Processing..." : "Send Tip"}
             </Button>
           </div>
           <div className="flex gap-3">
-            <Button
-              variant="outline"
-              className="border-blue-600 text-blue-600 font-semibold flex items-center gap-2 px-6 py-2 rounded-lg hover:bg-blue-50 transition-all duration-300"
-            >
-              <ThumbsUp className="h-4 w-4" />
-              Like
-            </Button>
+            {liked ? (
+              <div className="flex gap-2 items-center">
+                <HeartIcon className="h-4 w-4 bg-red-500" />
+                Liked
+              </div>
+            ) : (
+              <Button
+                onClick={handleLike}
+                variant="outline"
+                className="border-blue-600 text-blue-600 font-semibold flex items-center gap-2 px-6 py-2 rounded-lg hover:bg-blue-50 transition-all duration-300"
+              >
+                <ThumbsUp className="h-4 w-4" />
+                Like
+              </Button>
+            )}
           </div>
         </div>
       </div>

@@ -1,6 +1,3 @@
-"use client";
-
-import { useUser } from "@civic/auth-web3/react";
 import {
   Connection,
   LAMPORTS_PER_SOL,
@@ -9,22 +6,25 @@ import {
   Transaction,
 } from "@solana/web3.js";
 
-const connection = new Connection("https://api.devnet.solana.com", "confirmed");
+export const connection = new Connection(
+  "https://api.devnet.solana.com",
+  "confirmed"
+);
+
 export const checkBalance = async (publicKey: string) => {
   const balance = await connection.getBalance(new PublicKey(publicKey));
   return balance / LAMPORTS_PER_SOL;
 };
 
-export default async function useHandleTrxn(
+export async function handleTrxn(
   fromPubkey: string,
   toPubKey: string,
-  amount: number
+  amount: number,
+  signTransaction: (tx: Transaction, conn: Connection) => Promise<string>
 ) {
   const fromPubKeyBalance = await checkBalance(fromPubkey);
   if (fromPubKeyBalance < amount) throw new Error("Insufficient funds");
-  const { sendTransaction } = userContext.solana.wallet;
 
-  const userContext = useUser();
   const transaction = new Transaction().add(
     SystemProgram.transfer({
       fromPubkey: new PublicKey(fromPubkey),
@@ -32,5 +32,10 @@ export default async function useHandleTrxn(
       lamports: amount * LAMPORTS_PER_SOL,
     })
   );
-  const signature = await sendTransaction(transaction, connection);
+  const { blockhash } = await connection.getLatestBlockhash("finalized");
+  transaction.recentBlockhash = blockhash;
+  transaction.feePayer = new PublicKey(fromPubkey);
+
+  const signature = await signTransaction(transaction, connection);
+  return signature;
 }

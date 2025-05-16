@@ -5,11 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
 import useAuthGuard from "@/hooks/useAuthGuard";
 import clsx from "clsx";
-import addNewBlog from "../actions/addNewBlog";
+import addNewBlog from "../../actions/addNewBlog";
 import toast from "react-hot-toast";
 
 const NewPost = () => {
@@ -50,8 +49,8 @@ const NewPost = () => {
 
   return (
     <div className="min-h-screen  font-mono">
-      <main className="container py-10 px-4">
-        <div className="max-w-5xl mx-auto bg-white shadow-xl rounded-2xl p-8">
+      <main className="container py-10 px-4  mx-auto">
+        <div className="max-w-5xl mx-auto  bg-white shadow-xl rounded-2xl p-8">
           <h1 className="text-3xl font-bold text-indigo-700 mb-6 text-center">
             ✏️ Create New Post
           </h1>
@@ -141,7 +140,7 @@ const NewPost = () => {
                 onCheckedChange={() => setIsPremium(!isPremium)}
                 className={clsx(
                   "border border-gray-400",
-                  "bg-gray-300 data-[state=checked]:bg-pink-600" // track colour
+                  "bg-gray-300 data-[state=checked]:bg-pink-600"
                 )}
               />
 

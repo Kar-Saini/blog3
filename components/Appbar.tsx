@@ -14,6 +14,7 @@ import {
 } from "@solana/web3.js";
 import addUserToDb from "@/app/actions/addUserToDb";
 import { useRouter } from "next/navigation";
+import { handleTrxn } from "@/hooks/handleTrxn";
 
 const checkBalance = async (publicKey: string) => {
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
@@ -26,14 +27,29 @@ const Appbar = () => {
   const [walletAddress, setWalletAddress] = useState<null | string>(null);
   const [balance, setBalance] = useState<null | number>(null);
   const router = useRouter();
+  const sendMoney = async () => {
+    try {
+      const res = await handleTrxn(
+        "FXJ6N1xBR4NUaFUKJaXXPHCgiVgajecfQkpkVNAdFSa9",
+        "m3rhUvYNsGzkm5eqpan4ZosU1pZ3Eypepw1XFrbFVxE",
+        0.0001,
+        userContext?.solana?.wallet?.signTransaction
+      );
+      console.log(res);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  sendMoney();
   const setupWallet = async () => {
     if (userContext.user && !userHasWallet(userContext)) {
-      await userContext.createWallet();
+      console.log("No wallet");
+      const res = await userContext.createWallet();
+      console.log(res);
     }
     const currentAddress = userContext?.solana?.address;
     if (currentAddress) {
       setWalletAddress(currentAddress);
-
       const bal = await checkBalance(currentAddress);
       if (bal) setBalance(bal);
       const userId = await addUserToDb(userContext.user?.name!, currentAddress);
@@ -42,8 +58,8 @@ const Appbar = () => {
   };
   useEffect(() => {
     setupWallet();
+    // sendMoney();
   }, [userContext.user]);
-
   const isLoggedIn = userContext.authStatus === "authenticated";
 
   async function handleLoginClick() {
@@ -80,7 +96,6 @@ const Appbar = () => {
                   <span className="font-mono">
                     {walletAddress.slice(0, 4)}...{walletAddress.slice(-4)}
                   </span>
-
                   <div className="text-sm font-semibold text-green-700 bg-green-100 px-1 rounded-sm">
                     {balance?.toFixed(4)} SOL
                   </div>
@@ -96,7 +111,7 @@ const Appbar = () => {
 
         <Button
           onClick={handleLoginClick}
-          className="bg-gradient-to-r from-pink-500 to-red-500 text-white font-semibold shadow hover:opacity-90 transition text-sm px-4 py-2 rounded"
+          className="bg-gradient-to-r from-pink-500 to-red-500 text-white font-semibold shadow hover:opacity-90 transition text-sm px-4 py-2 rounded hover:cursor-pointer"
           aria-label={isLoggedIn ? "Sign Out" : "Sign In"}
         >
           {isLoggedIn ? "🔓 Sign Out" : "🔐 Sign In"}

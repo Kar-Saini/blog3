@@ -33,7 +33,14 @@ const Explore = () => {
     getBlogs();
   }, [userContext.authStatus]);
 
-  if (!blogs) return <p>Loading...</p>;
+  if (!blogs)
+    return (
+      <div className="min-h-screen  font-mono">
+        <div className="container py-16 text-center">
+          <h1 className="text-2xl font-bold mb-4">Loading...</h1>
+        </div>
+      </div>
+    );
   return (
     <div className="font-sans">
       <section className="py-14 px-4 ">

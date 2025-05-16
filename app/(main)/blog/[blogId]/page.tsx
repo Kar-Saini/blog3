@@ -42,8 +42,17 @@ const BlogPage = () => {
 
   async function handleLike() {
     try {
-      const res = await likeBlog(blog.id, currentUser.id);
-      toast.success(res);
+      if (blog.isPremium) {
+        const hasUserPurchased = blog.purchasedUsers.map(
+          (user) => user.id === userId
+        );
+        if (hasUserPurchased) {
+          const res = await likeBlog(blog.id, currentUser.id);
+          toast.success(res);
+        } else toast.error("Blog not purchased");
+      } else {
+        const res = await likeBlog(blog.id, currentUser.id);
+      }
     } catch (error) {
       toast.error("Error : " + error);
       console.log(error);
@@ -52,6 +61,7 @@ const BlogPage = () => {
   const handlePurchase = () => {};
 
   function handleTip() {}
+
   if (!blog) {
     return (
       <div className="min-h-screen  font-mono">
@@ -122,7 +132,7 @@ const BlogPage = () => {
 
   return (
     <div className="min-h-screen font-mono w-full ">
-      <main className="container py-10 px-4">
+      <main className="container py-10 px-4 mx-auto">
         <article className="max-w-6xl mx-auto">
           <header className="mb-10">
             {blog.imageUrl && (
@@ -135,7 +145,7 @@ const BlogPage = () => {
               </div>
             )}
 
-            <div className="flex flex-wrap items-center gap-3 mb-5">
+            <div className="flex flex-wrap items-center gap-3 mb-5 mx-auto">
               <time
                 dateTime={blog.createdAt}
                 className="text-sm text-purple-700 font-semibold flex items-center"
@@ -216,6 +226,10 @@ const BlogPage = () => {
               <TipAuthor
                 authorId={blog.blogOwner.id}
                 authorName={blog.blogOwner.name}
+                handleLike={handleLike}
+                liked={blog.likes.filter(
+                  (like) => like.userId === currentUser.id
+                )}
               />
             </div>
           )}
