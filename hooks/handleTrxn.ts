@@ -20,7 +20,7 @@ export async function handleTrxn(
   fromPubkey: string,
   toPubKey: string,
   amount: number,
-  signTransaction: (tx: Transaction, conn: Connection) => Promise<string>
+  signTransaction: (tx: Transaction) => Promise<Transaction>
 ) {
   const fromPubKeyBalance = await checkBalance(fromPubkey);
   if (fromPubKeyBalance < amount) throw new Error("Insufficient funds");
@@ -36,6 +36,11 @@ export async function handleTrxn(
   transaction.recentBlockhash = blockhash;
   transaction.feePayer = new PublicKey(fromPubkey);
 
-  const signature = await signTransaction(transaction, connection);
-  return signature;
+  const signedTransaction = await signTransaction(transaction);
+
+  const rawTx = signedTransaction.serialize();
+  const txSignature = await connection.sendRawTransaction(rawTx);
+  await connection.confirmTransaction(txSignature, "confirmed");
+
+  return txSignature;
 }

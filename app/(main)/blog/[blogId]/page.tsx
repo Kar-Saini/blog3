@@ -11,6 +11,9 @@ import toast from "react-hot-toast";
 
 import getUserDetailsByCivicAddress from "@/app/actions/getUserDetailsByCivicAddress";
 import likeBlog from "@/app/actions/likeBlog";
+import { handleTrxn } from "@/hooks/handleTrxn";
+import purchaseBlog from "@/app/actions/purchaseBlog";
+import { tipBlog } from "@/app/actions/tipBlog";
 
 const BlogPage = () => {
   const { blogId } = useParams();
@@ -18,7 +21,9 @@ const BlogPage = () => {
   const router = useRouter();
   const [blog, setBlog] = useState<any>();
   const [currentUser, setCurrentUser] = useState<any>();
-
+  const [laoding, setLoading] = useState(false);
+  const authorCivicAddress = blog.blogOwner.civicProvidedPublicKey;
+  const currentUserCivicAddress = currentUser.civicProvidedPublicKey;
   useEffect(() => {
     if (!blogId) router.push("/explore");
     async function getBlogAndCurrentUserDeatails() {
@@ -41,10 +46,11 @@ const BlogPage = () => {
   }, []);
 
   async function handleLike() {
+    setLoading(true);
     try {
       if (blog.isPremium) {
         const hasUserPurchased = blog.purchasedUsers.map(
-          (user) => user.id === userId
+          (user: any) => user.id === currentUser.id
         );
         if (hasUserPurchased) {
           const res = await likeBlog(blog.id, currentUser.id);
@@ -56,12 +62,59 @@ const BlogPage = () => {
     } catch (error) {
       toast.error("Error : " + error);
       console.log(error);
+    } finally {
+      setLoading(false);
     }
   }
-  const handlePurchase = () => {};
+  const handlePurchase = async () => {
+    const authorCivicAddress = blog.blogOwner.civicProvidedPublicKey;
+    const currentUserCivicAddress = currentUser.civicProvidedPublicKey;
+    console.log(authorCivicAddress);
+    console.log(currentUserCivicAddress);
+    if (!authorCivicAddress || !currentUserCivicAddress) {
+      toast.error("Address not found");
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await handleTrxn(
+        currentUserCivicAddress,
+        authorCivicAddress,
+        blog.price,
+        userContext.solana.wallet.signTransaction
+      );
+      toast.success(response.toString());
+      await purchaseBlog(blog.id, currentUser.id);
+    } catch (error) {
+      toast.error("Error");
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  function handleTip() {}
-
+  async function handleTip(amount: number) {
+    if (!authorCivicAddress || !currentUserCivicAddress) {
+      toast.error("Address not found");
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await handleTrxn(
+        currentUserCivicAddress,
+        authorCivicAddress,
+        blog.price,
+        userContext.solana.wallet.signTransaction
+      );
+      toast.success(response.toString());
+      await tipBlog(currentUserCivicAddress, currentUser.id, blog.id, amo);
+    } catch (error) {
+      toast.error("Error");
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  }
   if (!blog) {
     return (
       <div className="min-h-screen  font-mono">
@@ -158,7 +211,7 @@ const BlogPage = () => {
                 })}
               </time>
 
-              {blog.tags.split(",").map((tag) => (
+              {blog.tags.split(",").map((tag: string) => (
                 <Badge
                   key={tag}
                   variant="outline"
@@ -208,9 +261,10 @@ const BlogPage = () => {
                 </p>
                 <Button
                   onClick={handlePurchase}
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold shadow hover:opacity-90"
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold shadow hover:opacity-90 hover:cursor-pointer"
+                  disabled={laoding}
                 >
-                  Pay 0.01 SOL to Unlock
+                  Pay {blog.price} SOL to Unlock
                 </Button>
               </div>
             ) : (
@@ -228,8 +282,9 @@ const BlogPage = () => {
                 authorName={blog.blogOwner.name}
                 handleLike={handleLike}
                 liked={blog.likes.filter(
-                  (like) => like.userId === currentUser.id
+                  (like: any) => like.userId === currentUser.id
                 )}
+                handleTip={handleTip}
               />
             </div>
           )}

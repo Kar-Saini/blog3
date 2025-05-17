@@ -14,7 +14,7 @@ import {
 } from "@solana/web3.js";
 import addUserToDb from "@/app/actions/addUserToDb";
 import { useRouter } from "next/navigation";
-import { handleTrxn } from "@/hooks/handleTrxn";
+import { RefreshCw } from "lucide-react";
 
 const checkBalance = async (publicKey: string) => {
   const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
@@ -27,20 +27,7 @@ const Appbar = () => {
   const [walletAddress, setWalletAddress] = useState<null | string>(null);
   const [balance, setBalance] = useState<null | number>(null);
   const router = useRouter();
-  const sendMoney = async () => {
-    try {
-      const res = await handleTrxn(
-        "FXJ6N1xBR4NUaFUKJaXXPHCgiVgajecfQkpkVNAdFSa9",
-        "m3rhUvYNsGzkm5eqpan4ZosU1pZ3Eypepw1XFrbFVxE",
-        0.0001,
-        userContext?.solana?.wallet?.signTransaction
-      );
-      console.log(res);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-  sendMoney();
+
   const setupWallet = async () => {
     if (userContext.user && !userHasWallet(userContext)) {
       console.log("No wallet");
@@ -66,6 +53,7 @@ const Appbar = () => {
     if (isLoggedIn) await userContext.signOut();
     else await userContext.signIn();
   }
+
   return (
     <nav className="bg-white border-b border-gray-200 shadow-md px-6 py-4 rounded-md mx-auto max-w-screen-xl flex items-center justify-between font-mono">
       <Link
@@ -96,8 +84,19 @@ const Appbar = () => {
                   <span className="font-mono">
                     {walletAddress.slice(0, 4)}...{walletAddress.slice(-4)}
                   </span>
-                  <div className="text-sm font-semibold text-green-700 bg-green-100 px-1 rounded-sm">
-                    {balance?.toFixed(4)} SOL
+                  <div className="text-sm font-semibold text-green-700 bg-green-100 px-1 rounded-sm flex gap-2 items-center">
+                    <span>{balance?.toFixed(4)} SOL</span>
+                    <span>
+                      <RefreshCw
+                        className="hover:cursor-pointer w-[15px] h-[15px]"
+                        onClick={async () => {
+                          console.log("first");
+                          const bal = await checkBalance(walletAddress);
+                          if (bal) setBalance(bal);
+                          console.log(balance);
+                        }}
+                      />
+                    </span>
                   </div>
                 </div>
               </>

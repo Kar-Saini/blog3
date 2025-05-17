@@ -10,6 +10,7 @@ interface TipAuthorProps {
   authorId: string;
   authorName: string;
   handleLike: () => void;
+  handletip: (amount: number) => void;
   liked: boolean;
 }
 
@@ -18,13 +19,10 @@ const TipAuthor = ({
   authorName,
   handleLike,
   liked,
+  handleTip,
 }: TipAuthorProps) => {
   const [tipAmount, setTipAmount] = useState(0.01);
   const [isProcessing, setIsProcessing] = useState(false);
-
-  const handleTip = () => {
-    setIsProcessing(true);
-  };
 
   return (
     <div className="bg-white shadow-lg border border-gray-200 p-6 rounded-2xl">
@@ -47,7 +45,7 @@ const TipAuthor = ({
               step={0.001}
             />
             <Button
-              onClick={handleTip}
+              onClick={() => handleTip(tipAmount)}
               className="bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600 hover:cursor-pointer text-white font-bold px-6 py-2 rounded-lg transition-all duration-300"
               disabled={isProcessing}
             >
@@ -57,7 +55,7 @@ const TipAuthor = ({
           <div className="flex gap-3">
             {liked ? (
               <div className="flex gap-2 items-center">
-                <HeartIcon className="h-4 w-4 bg-red-500" />
+                <HeartIcon className="h-4 w-4 text-red-500" />
                 Liked
               </div>
             ) : (

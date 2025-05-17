@@ -4,10 +4,10 @@ import prisma from "@/lib/utils";
 
 export default async function purchaseBlog(blogId: string, userId: string) {
   try {
-    const user = await prisma.blog.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: userId },
     });
-
+    console.log(user);
     if (!user) {
       throw new Error("Invalid UserID");
     }
