@@ -1,7 +1,6 @@
 "use client";
 import primsa from "@/lib/utils";
 import { useUser } from "@civic/auth-web3/react";
-import { Prisma } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import toast from "react-hot-toast";
