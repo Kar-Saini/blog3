@@ -4,7 +4,7 @@ import TipAuthor from "@/components/TipAuthor";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Lock, Calendar, Tag } from "lucide-react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useUser } from "@civic/auth-web3/react";
 import getBlogById from "@/app/actions/getBlogById";
 import toast from "react-hot-toast";
@@ -22,21 +22,20 @@ const BlogPage = () => {
   const [blog, setBlog] = useState<any>();
   const [currentUser, setCurrentUser] = useState<any>();
   const [laoding, setLoading] = useState(false);
-  const authorCivicAddress = blog.blogOwner.civicProvidedPublicKey;
-  const currentUserCivicAddress = currentUser.civicProvidedPublicKey;
+  let blogPrice = 0.0001;
   useEffect(() => {
     if (!blogId) router.push("/explore");
     async function getBlogAndCurrentUserDeatails() {
       try {
         const blog = await getBlogById(blogId as string);
         setBlog(blog);
-        console.log(userContext);
-        const currentUserDetails = await getUserDetailsByCivicAddress(
-          userContext?.solana?.address.toString()
-        );
-        console.log(currentUserDetails);
-        console.log(blog);
-        setCurrentUser(currentUserDetails);
+        blogPrice = blog.price as number;
+        if (userContext?.solana?.address) {
+          const currentUserDetails = await getUserDetailsByCivicAddress(
+            userContext?.solana?.address.toString()
+          );
+          setCurrentUser(currentUserDetails);
+        }
       } catch (error) {
         toast.error("Error finding blog/user " + error);
         router.push("/explore");
@@ -69,6 +68,7 @@ const BlogPage = () => {
   const handlePurchase = async () => {
     const authorCivicAddress = blog.blogOwner.civicProvidedPublicKey;
     const currentUserCivicAddress = currentUser.civicProvidedPublicKey;
+
     console.log(authorCivicAddress);
     console.log(currentUserCivicAddress);
     if (!authorCivicAddress || !currentUserCivicAddress) {
@@ -80,10 +80,11 @@ const BlogPage = () => {
       const response = await handleTrxn(
         currentUserCivicAddress,
         authorCivicAddress,
-        blog.price,
+        blogPrice,
         userContext.solana.wallet.signTransaction
       );
-      toast.success(response.toString());
+      toast.success("Blog purchased " + response);
+      router.push(`/blog/${blog.id}`);
       await purchaseBlog(blog.id, currentUser.id);
     } catch (error) {
       toast.error("Error");
@@ -94,6 +95,8 @@ const BlogPage = () => {
   };
 
   async function handleTip(amount: number) {
+    const authorCivicAddress = blog.blogOwner.civicProvidedPublicKey;
+    const currentUserCivicAddress = currentUser.civicProvidedPublicKey;
     if (!authorCivicAddress || !currentUserCivicAddress) {
       toast.error("Address not found");
       return;
@@ -103,11 +106,11 @@ const BlogPage = () => {
       const response = await handleTrxn(
         currentUserCivicAddress,
         authorCivicAddress,
-        blog.price,
+        blogPrice,
         userContext.solana.wallet.signTransaction
       );
       toast.success(response.toString());
-      await tipBlog(currentUserCivicAddress, currentUser.id, blog.id, amo);
+      await tipBlog(currentUserCivicAddress, currentUser.id, blog.id, amount);
     } catch (error) {
       toast.error("Error");
       console.log(error);
@@ -249,7 +252,7 @@ const BlogPage = () => {
             (currentUser.id !== blog.blogOwnerId ||
               (currentUser.purchasedBlogs &&
                 !currentUser.purchasedBlogs
-                  .map((b) => b.id)
+                  .map((b: any) => b.id)
                   .includes(blog.id))) ? (
               <div className="bg-white p-10 rounded-xl border border-purple-200 text-center shadow-lg">
                 <Lock className="h-12 w-12 mx-auto mb-4 text-orange-500" />
@@ -264,7 +267,7 @@ const BlogPage = () => {
                   className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold shadow hover:opacity-90 hover:cursor-pointer"
                   disabled={laoding}
                 >
-                  Pay {blog.price} SOL to Unlock
+                  Pay {blogPrice} SOL to Unlock
                 </Button>
               </div>
             ) : (

@@ -10,7 +10,7 @@ interface TipAuthorProps {
   authorId: string;
   authorName: string;
   handleLike: () => void;
-  handletip: (amount: number) => void;
+  handleTip: (amount: number) => void;
   liked: boolean;
 }
 
