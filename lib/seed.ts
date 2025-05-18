@@ -1,8 +1,6 @@
 "use server";
-import { PrismaClient } from "@prisma/client";
 import { sampleBlogs } from "../data/data";
-
-const prisma = new PrismaClient();
+import prisma from "./utils";
 
 const users = [
   {
