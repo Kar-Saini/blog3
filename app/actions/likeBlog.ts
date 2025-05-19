@@ -1,6 +1,6 @@
 "use server";
 
-import prisma from "@/lib/utils";
+import prisma from "@/lib/prisma";
 
 export default async function likeBlog(blogId: string, userId: string) {
   try {

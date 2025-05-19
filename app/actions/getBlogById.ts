@@ -1,6 +1,6 @@
 "use server";
 
-import primsa from "@/lib/utils";
+import primsa from "@/lib/prisma";
 
 export default async function getBlogById(blogId: string) {
   try {

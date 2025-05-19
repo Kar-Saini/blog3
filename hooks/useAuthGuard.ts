@@ -1,5 +1,5 @@
 "use client";
-import primsa from "@/lib/utils";
+import getUserDetailsByCivicAddress from "@/app/actions/getUserDetailsByCivicAddress";
 import { useUser } from "@civic/auth-web3/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -21,9 +21,9 @@ export default async function useAuthGuard() {
   if (localStorage.getItem("userId")) {
     return localStorage.getItem("userId");
   } else {
-    const user = await primsa.user.findUnique({
-      where: { civicProvidedPublicKey: userContext?.user?.solana?.address },
-    });
+    const user = await getUserDetailsByCivicAddress(
+      userContext?.user?.solana?.address
+    );
     user && localStorage.setItem("userId", user.id);
     return user.id;
   }
