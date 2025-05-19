@@ -258,7 +258,7 @@ const Dashboard = () => {
                 </div>
               )}
               {mostRecentBlogs.map((mostRecentBlog: any) => (
-                <div className="space-y-4 mb-2">
+                <div className="space-y-4 mb-2" key={mostRecentBlog.id}>
                   <div className="border-l-4 border-emerald-500 pl-4">
                     <h3 className="font-medium">Latest Blog Published</h3>
                     <p className="text-sm text-gray-600 mt-1">

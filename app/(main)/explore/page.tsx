@@ -7,6 +7,7 @@ import getAllBlogs from "../../actions/getAllBlogs";
 import { useUser } from "@civic/auth-web3/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 const Explore = () => {
   const [activeTab, setActiveTab] = useState<"all" | "premium">("all");
@@ -20,13 +21,13 @@ const Explore = () => {
     const allBlogs = await getAllBlogs();
     if (allBlogs) setBlogs(allBlogs);
     setFeaturedBlog(
-      allBlogs.reduce((blog1, blog2) => {
+      allBlogs.reduce((blog1: any, blog2: any) => {
         return Number(blog1._count.likes) > Number(blog2._count.likes)
           ? blog1
           : blog2;
       })
     );
-    setPremiumBlogs(allBlogs.filter((blog) => blog.isPremium));
+    setPremiumBlogs(allBlogs.filter((blog: any) => blog.isPremium));
   }
 
   useEffect(() => {
@@ -56,7 +57,7 @@ const Explore = () => {
               <div className="md:flex">
                 <div className="md:w-1/3 h-64 md:h-auto bg-gray-100">
                   {featuredBlog.imageUrl && (
-                    <img
+                    <Image
                       src={featuredBlog.imageUrl}
                       alt={featuredBlog.title}
                       className="h-full w-full object-cover"
@@ -106,7 +107,10 @@ const Explore = () => {
             <Tabs
               defaultValue="all"
               className="w-[250px]"
-              onValueChange={setActiveTab}
+              onValueChange={() => {
+                if (activeTab === "all") setActiveTab("premium");
+                else setActiveTab("all");
+              }}
             >
               <TabsList className="bg-gray-100 border rounded-md">
                 <TabsTrigger
@@ -127,7 +131,7 @@ const Explore = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {activeTab === "all"
-              ? blogs.map((blog) => (
+              ? blogs.map((blog: any) => (
                   <BlogCard
                     key={blog.id}
                     id={blog.id}
@@ -140,7 +144,7 @@ const Explore = () => {
                     likes={blog._count.likes}
                   />
                 ))
-              : premiumBlogs.map((blog) => (
+              : premiumBlogs.map((blog: any) => (
                   <BlogCard
                     key={blog.id}
                     id={blog.id}
