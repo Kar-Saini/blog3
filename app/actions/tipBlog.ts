@@ -25,7 +25,7 @@ export async function tipBlog(
       throw new Error("Invalid BlogID");
     }
 
-    const tip = await prisma.tip.create({
+    await prisma.tip.create({
       data: {
         amount,
         fromAddress,

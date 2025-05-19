@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import clsx from "clsx";
 import { Lock, Heart } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 interface BlogCardProps {
@@ -30,7 +31,7 @@ const BlogCard = ({
       <Card className="overflow-hidden border border-gray-200 transition-all duration-200 hover:shadow-md h-full flex flex-col">
         {imageUrl && (
           <div className="h-48 w-full overflow-hidden bg-gray-100">
-            <img
+            <Image
               src={imageUrl}
               alt={title}
               className="h-full w-full object-cover"

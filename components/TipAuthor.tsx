@@ -2,8 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Slider } from "@/components/ui/slider";
-import { useToast } from "@/components/ui/use-toast";
+
 import { Heart, HeartIcon, ThumbsUp } from "lucide-react";
 
 interface TipAuthorProps {
@@ -15,7 +14,6 @@ interface TipAuthorProps {
 }
 
 const TipAuthor = ({
-  authorId,
   authorName,
   handleLike,
   liked,
